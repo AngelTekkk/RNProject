@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   StyleSheet,
   View,
@@ -9,25 +9,22 @@ import {
   TextInput,
   Pressable,
   TouchableWithoutFeedback,
-  useWindowDimensions,
 } from "react-native";
 
-const bgImage = require("../assets/images/bg.jpg");
+const bgImage = require("../../assets/images/bg.jpg");
 
 const initialState = {
   email: "",
   password: "",
 };
 
-export default function LoginScreen({ navigation }) {
+export default function LoginScreen({ navigation, route }) {
   const [focus, setFocus] = useState("");
   const [isPwdShown, setIsPwdShown] = useState(false);
   const [state, setState] = useState(initialState);
   const [isKeyboardShown, setIsKeyboardShown] = useState(false);
 
   const passwordRef = useRef();
-
-  const { width } = useWindowDimensions();
 
   useEffect(() => {
     const showSubscription = Keyboard.addListener("keyboardDidShow", () => {
@@ -53,6 +50,7 @@ export default function LoginScreen({ navigation }) {
     console.log(state);
     hideKeyboard();
     setState(initialState);
+    navigation.navigate("Home");
   };
 
   return (
@@ -150,12 +148,18 @@ export default function LoginScreen({ navigation }) {
                 )}
               </View>
               {!isKeyboardShown && (
-                <Text
-                  style={styles.link}
-                  onPress={() => navigation.navigate("RegistrationScreen")}
+                <Pressable
+                  style={({ pressed }) => [
+                    {
+                      opacity: pressed ? 0.8 : 1,
+                    },
+                  ]}
+                  onPress={() => navigation.navigate("Registration")}
                 >
-                  Нет аккаунта? Зарегистрироваться
-                </Text>
+                  <Text style={styles.link}>
+                    Нет аккаунта? Зарегистрироваться
+                  </Text>
+                </Pressable>
               )}
             </View>
           </KeyboardAvoidingView>

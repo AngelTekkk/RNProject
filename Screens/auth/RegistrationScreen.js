@@ -13,7 +13,7 @@ import {
   useWindowDimensions,
 } from "react-native";
 
-const bgImage = require("../assets/images/bg.jpg");
+const bgImage = require("../../assets/images/bg.jpg");
 
 const initialState = {
   login: "",
@@ -59,6 +59,7 @@ export default function RegistrationScreen({ navigation }) {
     console.log(state);
     hideKeyboard();
     setState(initialState);
+    navigation.navigate("Home");
   };
 
   return (
@@ -204,12 +205,16 @@ export default function RegistrationScreen({ navigation }) {
                 )}
               </View>
               {!isKeyboardShown && (
-                <Text
-                  style={styles.link}
-                  onPress={() => navigation.navigate("LoginScreen")}
+                <Pressable
+                  style={({ pressed }) => [
+                    {
+                      opacity: pressed ? 0.8 : 1,
+                    },
+                  ]}
+                  onPress={() => navigation.navigate("Login")}
                 >
-                  Уже есть аккаунт? Войти
-                </Text>
+                  <Text style={styles.link}>Уже есть аккаунт? Войти</Text>
+                </Pressable>
               )}
             </View>
           </KeyboardAvoidingView>
