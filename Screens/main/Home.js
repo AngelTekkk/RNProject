@@ -48,7 +48,7 @@ export default function Home({ navigation }) {
       <MainTab.Screen
         name="CreatePostsScreen"
         component={CreatePostsScreen}
-        options={{
+        options={({ route }) => ({
           title: "Создать публикацию",
           headerStyle: {
             borderBottomWidth: 0.5,
@@ -73,6 +73,7 @@ export default function Home({ navigation }) {
               }}
             />
           ),
+          tabBarStyle: { display: "none" },
           tabBarIcon: () => (
             <View
               style={{
@@ -87,7 +88,7 @@ export default function Home({ navigation }) {
               <Ionicons name="add" size={24} color="#FFFFFF" />
             </View>
           ),
-        }}
+        })}
       />
       <MainTab.Screen
         name="ProfileScreen"
