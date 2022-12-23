@@ -46,7 +46,6 @@ export default function LoginScreen({ navigation, route }) {
   };
 
   const onSubmitForm = () => {
-    alert(`Email: ${state.email} Password: ${state.password}`);
     console.log(state);
     hideKeyboard();
     setState(initialState);

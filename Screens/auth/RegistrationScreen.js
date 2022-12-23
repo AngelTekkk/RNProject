@@ -53,9 +53,6 @@ export default function RegistrationScreen({ navigation }) {
   };
 
   const onSubmitForm = () => {
-    alert(
-      `Login: ${state.login} Email: ${state.email} Password: ${state.password}`
-    );
     console.log(state);
     hideKeyboard();
     setState(initialState);
