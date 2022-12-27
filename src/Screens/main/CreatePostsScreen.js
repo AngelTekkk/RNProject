@@ -34,7 +34,7 @@ export default function CreatePostsScreen({ navigation }) {
 
   const { width } = useWindowDimensions();
   const locationRef = useRef();
-  const user = useSelector((state) => state.auth.user);
+  const { user } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
 
   useEffect(() => {

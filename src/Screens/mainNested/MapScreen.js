@@ -10,7 +10,6 @@ export default function MapScreen({ navigation, route }) {
       setLocation(route.params.location);
     }
   }, [route.params]);
-  console.log(location);
 
   return (
     <View style={styles.container}>

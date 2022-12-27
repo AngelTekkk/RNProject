@@ -7,7 +7,6 @@ import { authStateCahngeUser } from "../redux/auth/authOperations";
 
 const Main = () => {
   const { user } = useSelector((state) => state.auth);
-  console.log(user);
   const dispatch = useDispatch();
 
   useEffect(() => {

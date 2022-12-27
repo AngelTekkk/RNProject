@@ -24,7 +24,6 @@ export default function CommentsScreen({ navigation, route }) {
   const [comments, setComments] = useState([]);
   const [postId, setPostId] = useState(null);
   const [isKeyboardShown, setIsKeyboardShown] = useState(false);
-  console.log(comments);
 
   const { user } = useSelector((state) => state.auth);
   const { posts } = useSelector((state) => state.posts);

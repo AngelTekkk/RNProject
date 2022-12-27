@@ -13,7 +13,6 @@ export const addPost =
   async (dispatch, getState) => {
     try {
       const index = Date.now();
-      console.log(title, photo, location, id);
       const photoURL = await uploadPhoto(
         photo,
         `posts/${id}`,
@@ -36,14 +35,12 @@ export const addComment =
   ({ postId, user, comment, createdAt }) =>
   async (dispatch, getState) => {
     try {
-      console.log(postId, user, comment, createdAt);
       await updateRecord(`${postId}`, {
         user,
         comment,
         createdAt,
       });
     } catch (error) {
-      console.log(error);
       dispatch(setErrorMessage([error.message]));
     }
   };
