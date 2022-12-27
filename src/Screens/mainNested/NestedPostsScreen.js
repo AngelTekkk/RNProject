@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import {
   StyleSheet,
   View,
@@ -8,57 +9,59 @@ import {
   Pressable,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
+import { subscribePosts } from "../../redux/posts/postsOperations";
 
 export default function PostsScreen({ navigation, route }) {
-  const [posts, setPosts] = useState([]);
+  const { user } = useSelector((state) => state.auth);
+  const { posts } = useSelector((state) => state.posts);
+
+  const dispatch = useDispatch();
 
   useEffect(() => {
-    if (route.params) {
-      setPosts((prevState) => [...prevState, route.params]);
-    }
-  }, [route.params]);
-  console.log("posts", posts);
+    dispatch(subscribePosts());
+  }, []);
 
   return (
     <View style={styles.container}>
       <View style={styles.user}>
-        <Image style={styles.userAvatar} />
+        {user.avatar && (
+          <Image style={styles.userAvatar} source={{ uri: `${user.avatar}` }} />
+        )}
         <View>
-          <Text style={styles.userName}>User Name</Text>
-          <Text style={styles.userEmail}>user@email.com</Text>
+          <Text style={styles.userName}>{user.name}</Text>
+          <Text style={styles.userEmail}>{user.email}</Text>
         </View>
       </View>
       <FlatList
         data={posts}
-        keyExtractor={(item, indx) => indx.toString()}
+        keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <View style={{ marginBottom: 32 }}>
-            <Image source={{ uri: item.state.photoUri }} style={styles.photo} />
-            <Text style={styles.photoText}>{item.state.photoName}</Text>
+            <Image source={{ uri: item.photo }} style={styles.photo} />
+            <Text style={styles.photoText}>{item.title}</Text>
             <View style={styles.linksContainer}>
               <Pressable
                 style={styles.linkContainer}
                 onPress={() => {
                   navigation.navigate("CommentsScreen", {
-                    photo: item.state.photoUri,
+                    photo: item.photo,
+                    postId: item.id,
                   });
                 }}
               >
                 <Feather name="message-circle" size={24} color="#BDBDBD" />
-                <Text style={styles.commentsCount}>0</Text>
+                <Text style={styles.commentsCount}>{item.comments.length}</Text>
               </Pressable>
               <Pressable
                 style={styles.linkContainer}
                 onPress={() => {
                   navigation.navigate("MapScreen", {
-                    location: item.location.coords,
+                    location: item.location,
                   });
                 }}
               >
                 <Feather name="map-pin" size={24} color="#BDBDBD" />
-                <Text style={styles.locationText}>
-                  {item.state.photoLocation}
-                </Text>
+                <Text style={styles.locationText}>{item.location.place}</Text>
               </Pressable>
             </View>
           </View>

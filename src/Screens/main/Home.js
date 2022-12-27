@@ -1,16 +1,20 @@
 import React from "react";
+import { useDispatch } from "react-redux";
+import { View } from "react-native";
+import { getFocusedRouteNameFromRoute } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Feather, Ionicons } from "@expo/vector-icons";
+import { authSignOutUser } from "../../redux/auth/authOperations";
 
-import ProfileScreen from "../../Screens/main/ProfileScreen";
-import CreatePostsScreen from "../../Screens/main/CreatePostsScreen";
-import PostsScreen from "../../Screens/main/PostsScreen";
-import { Pressable, View } from "react-native";
-import { getFocusedRouteNameFromRoute } from "@react-navigation/native";
+import ProfileScreen from "./ProfileScreen";
+import CreatePostsScreen from "./CreatePostsScreen";
+import PostsScreen from "./PostsScreen";
 
 const MainTab = createBottomTabNavigator();
 
 export default function Home({ navigation, route }) {
+  const dispatch = useDispatch();
+
   return (
     <MainTab.Navigator initialRouteName="PostsScreen">
       <MainTab.Screen
@@ -39,7 +43,7 @@ export default function Home({ navigation, route }) {
                 size={24}
                 style={{ marginRight: 10 }}
                 onPress={() => {
-                  navigation.navigate("Login");
+                  dispatch(authSignOutUser());
                 }}
               />
             ),

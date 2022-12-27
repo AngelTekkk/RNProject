@@ -12,13 +12,20 @@ import {
   TouchableWithoutFeedback,
   useWindowDimensions,
 } from "react-native";
+import { useDispatch } from "react-redux";
+import { Camera, CameraType } from "expo-camera";
+import { MaterialIcons } from "@expo/vector-icons";
+import { manipulateAsync, FlipType, SaveFormat } from "expo-image-manipulator";
 
-const bgImage = require("../../assets/images/bg.jpg");
+import { authSignUpUser } from "../../redux/auth/authOperations";
+
+const bgImage = require("../../../assets/images/bg.jpg");
 
 const initialState = {
   login: "",
   email: "",
   password: "",
+  photoUri: "",
 };
 
 export default function RegistrationScreen({ navigation }) {
@@ -26,7 +33,11 @@ export default function RegistrationScreen({ navigation }) {
   const [isPwdShown, setIsPwdShown] = useState(false);
   const [state, setState] = useState(initialState);
   const [isKeyboardShown, setIsKeyboardShown] = useState(false);
-  const [isImageAdded, setIsImageAdded] = useState(false);
+  const [isCameraEnabled, setIsCameraEnabled] = useState(false);
+  const [isDisabled, setIsDisabled] = useState(true);
+  const [camera, setCamera] = useState(null);
+
+  const dispatch = useDispatch();
 
   const emailRef = useRef();
   const passwordRef = useRef();
@@ -47,16 +58,34 @@ export default function RegistrationScreen({ navigation }) {
     };
   }, []);
 
+  useEffect(() => {
+    if (state.login && state.password && state.email && state.photoUri) {
+      setIsDisabled(false);
+    } else {
+      setIsDisabled(true);
+    }
+  }, [state]);
+
+  const takePhoto = async () => {
+    const photo = await camera.takePictureAsync();
+    const resizedPhoto = await manipulateAsync(
+      photo.uri,
+      [{ resize: { width: 480, height: 480 } }, { flip: FlipType.Horizontal }],
+      { format: SaveFormat.JPEG }
+    );
+    setState((prevState) => ({ ...prevState, photoUri: resizedPhoto.uri }));
+    setIsCameraEnabled(false);
+  };
+
   const hideKeyboard = () => {
     Keyboard.dismiss();
     setFocus("");
   };
 
   const onSubmitForm = () => {
-    console.log(state);
+    dispatch(authSignUpUser(state));
     hideKeyboard();
     setState(initialState);
-    navigation.navigate("Home");
   };
 
   return (
@@ -80,36 +109,66 @@ export default function RegistrationScreen({ navigation }) {
                 paddingBottom: isKeyboardShown ? 0 : 78,
               }}
             >
-              <View
-                style={{
-                  ...styles.addAvatar,
-                  right: width / 2 - 60,
-                }}
-              >
-                <Image style={styles.avatarImg} />
-                <Pressable
-                  style={{
-                    ...styles.addAvatarBtn,
-                    borderColor: isImageAdded ? "#E8E8E8" : "#FF6C00",
-                    backgroundColor: isImageAdded ? "#FFFFFF" : "transparent",
-                  }}
-                  onPress={() => setIsImageAdded((state) => !state)}
+              {isCameraEnabled ? (
+                <Camera
+                  style={{ ...styles.camera, right: width / 2 - 120 }}
+                  type={CameraType.front}
+                  ref={setCamera}
                 >
-                  <Text
+                  <Pressable style={styles.cameraBtn} onPress={takePhoto}>
+                    <MaterialIcons
+                      name="camera-alt"
+                      size={24}
+                      color="#BDBDBD"
+                    />
+                  </Pressable>
+                </Camera>
+              ) : (
+                <View
+                  style={{
+                    ...styles.addAvatar,
+                    right: width / 2 - 60,
+                  }}
+                >
+                  <Image
+                    style={styles.avatarImg}
+                    source={{ uri: state.photoUri }}
+                  />
+                  <Pressable
                     style={{
-                      ...styles.addAvatarBtnTitle,
-                      color: isImageAdded ? "#BDBDBD" : "#FF6C00",
-                      transform: isImageAdded
-                        ? [{ rotate: "-45deg" }]
-                        : [{ rotate: "0deg" }],
+                      ...styles.addAvatarBtn,
+                      borderColor: state.photoUri ? "#E8E8E8" : "#FF6C00",
+                      backgroundColor: state.photoUri
+                        ? "#FFFFFF"
+                        : "transparent",
+                    }}
+                    onPress={() => {
+                      if (state.photoUri) {
+                        setState((prevState) => ({
+                          ...prevState,
+                          photoUri: null,
+                        }));
+                      }
+                      setIsCameraEnabled(true);
                     }}
                   >
-                    +
-                  </Text>
-                </Pressable>
-              </View>
+                    <Text
+                      style={{
+                        ...styles.addAvatarBtnTitle,
+                        color: state.photoUri ? "#BDBDBD" : "#FF6C00",
+                        transform: state.photoUri
+                          ? [{ rotate: "-45deg" }]
+                          : [{ rotate: "0deg" }],
+                      }}
+                    >
+                      +
+                    </Text>
+                  </Pressable>
+                </View>
+              )}
+
               <Text style={styles.title}>Регистрация</Text>
-              <View style={styles.form}>
+              <View>
                 <TextInput
                   style={{
                     ...styles.input,
@@ -191,13 +250,22 @@ export default function RegistrationScreen({ navigation }) {
                       {
                         ...styles.btn,
                         opacity: pressed ? 0.8 : 1,
+                        backgroundColor: isDisabled ? "#F6F6F6" : "#FF6C00",
                       },
                     ]}
                     onPress={() => {
                       onSubmitForm();
                     }}
+                    disabled={isDisabled}
                   >
-                    <Text style={styles.btnTitle}>Зарегистрироваться</Text>
+                    <Text
+                      style={{
+                        ...styles.btnTitle,
+                        color: isDisabled ? "#BDBDBD" : "#FFFFFF",
+                      }}
+                    >
+                      Зарегистрироваться
+                    </Text>
                   </Pressable>
                 )}
               </View>
@@ -244,7 +312,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: 32,
   },
-  form: {},
   addAvatar: {
     position: "absolute",
     top: -60,
@@ -302,7 +369,6 @@ const styles = StyleSheet.create({
   },
   btn: {
     height: 50,
-    backgroundColor: "#FF6C00",
     borderRadius: 100,
     justifyContent: "center",
     alignItems: "center",
@@ -312,7 +378,6 @@ const styles = StyleSheet.create({
     fontFamily: "Roboto",
     fontSize: 16,
     lineHeight: 18,
-    color: "#FFFFFF",
   },
   link: {
     fontFamily: "Roboto",
@@ -320,5 +385,25 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     color: "#1B4371",
     textAlign: "center",
+  },
+  camera: {
+    position: "absolute",
+    top: -180,
+    height: 240,
+    width: 240,
+    marginBottom: 8,
+    justifyContent: "flex-end",
+    alignItems: "flex-end",
+    borderRadius: 8,
+  },
+  cameraBtn: {
+    justifyContent: "center",
+    alignItems: "center",
+    width: 60,
+    height: 60,
+    borderRadius: 50,
+    backgroundColor: "#FFFFFF",
+    marginBottom: 10,
+    marginRight: 10,
   },
 });

@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import {
   StyleSheet,
   View,
@@ -15,11 +16,12 @@ import {
 import { Camera, CameraType } from "expo-camera";
 import * as Location from "expo-location";
 import { MaterialIcons, Feather } from "@expo/vector-icons";
+import { addPost } from "../../redux/posts/postsOperations";
 
 const initialState = {
-  photoUri: null,
+  photoUri: "",
   photoName: "",
-  photoLocation: null,
+  photoLocation: "",
 };
 
 export default function CreatePostsScreen({ navigation }) {
@@ -31,8 +33,9 @@ export default function CreatePostsScreen({ navigation }) {
   const [errorMsg, setErrorMsg] = useState(null);
 
   const { width } = useWindowDimensions();
-
   const locationRef = useRef();
+  const user = useSelector((state) => state.auth.user);
+  const dispatch = useDispatch();
 
   useEffect(() => {
     (async () => {
@@ -47,6 +50,17 @@ export default function CreatePostsScreen({ navigation }) {
         setErrorMsg("Permission to access camera was denied");
         return;
       }
+      let { coords } = await Location.getCurrentPositionAsync({});
+      let coordinates = {
+        latitude: coords.latitude,
+        longitude: coords.longitude,
+      };
+      const photoPlace = await Location.reverseGeocodeAsync(coordinates);
+      const location = {
+        ...coordinates,
+        place: `${photoPlace[0].region}, ${photoPlace[0].country}, ${photoPlace[0].street}`,
+      };
+      handleChangeText(location, "photoLocation");
     })();
   }, []);
 
@@ -65,12 +79,17 @@ export default function CreatePostsScreen({ navigation }) {
   }, []);
 
   const onSubmitForm = async () => {
-    let location = await Location.getCurrentPositionAsync({});
-    console.log(state, location);
     hideKeyboard();
     setState(initialState);
     setIsDisabled(true);
-    navigation.navigate("NestedPostsScreen", { state, location });
+    const post = {
+      title: state.photoName,
+      photo: state.photoUri,
+      location: state.photoLocation,
+      id: user.id,
+    };
+    dispatch(addPost(post));
+    navigation.navigate("NestedPostsScreen");
   };
 
   const handleDelete = () => {
@@ -185,7 +204,7 @@ export default function CreatePostsScreen({ navigation }) {
                   handleChangeText(value, "photoLocation");
                 }}
                 returnKeyType={"next"}
-                value={state.photoLocation}
+                value={state.photoLocation?.place}
               />
               <View style={styles.pinImg}>
                 <Feather name="map-pin" size={24} color="#BDBDBD" />

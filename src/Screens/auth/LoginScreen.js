@@ -10,8 +10,11 @@ import {
   Pressable,
   TouchableWithoutFeedback,
 } from "react-native";
+import { useDispatch } from "react-redux";
 
-const bgImage = require("../../assets/images/bg.jpg");
+import { authSignInUser } from "../../redux/auth/authOperations";
+
+const bgImage = require("../../../assets/images/bg.jpg");
 
 const initialState = {
   email: "",
@@ -23,7 +26,9 @@ export default function LoginScreen({ navigation, route }) {
   const [isPwdShown, setIsPwdShown] = useState(false);
   const [state, setState] = useState(initialState);
   const [isKeyboardShown, setIsKeyboardShown] = useState(false);
+  const [isDisabled, setIsDisabled] = useState(true);
 
+  const dispatch = useDispatch();
   const passwordRef = useRef();
 
   useEffect(() => {
@@ -40,16 +45,23 @@ export default function LoginScreen({ navigation, route }) {
     };
   }, []);
 
+  useEffect(() => {
+    if (state.password && state.email) {
+      setIsDisabled(false);
+    } else {
+      setIsDisabled(true);
+    }
+  }, [state]);
+
   const hideKeyboard = () => {
     Keyboard.dismiss();
     setFocus("");
   };
 
   const onSubmitForm = () => {
-    console.log(state);
+    dispatch(authSignInUser(state));
     hideKeyboard();
     setState(initialState);
-    navigation.navigate("Home");
   };
 
   return (
@@ -136,13 +148,21 @@ export default function LoginScreen({ navigation, route }) {
                       {
                         ...styles.btn,
                         opacity: pressed ? 0.8 : 1,
+                        backgroundColor: isDisabled ? "#F6F6F6" : "#FF6C00",
                       },
                     ]}
                     onPress={() => {
                       onSubmitForm();
                     }}
                   >
-                    <Text style={styles.btnTitle}>Войти</Text>
+                    <Text
+                      style={{
+                        ...styles.btnTitle,
+                        color: isDisabled ? "#BDBDBD" : "#FFFFFF",
+                      }}
+                    >
+                      Войти
+                    </Text>
                   </Pressable>
                 )}
               </View>

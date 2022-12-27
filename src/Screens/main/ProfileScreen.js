@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import {
   StyleSheet,
   View,
@@ -7,16 +8,25 @@ import {
   Pressable,
   useWindowDimensions,
   Image,
-  ScrollView,
+  FlatList,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
+import { authSignOutUser } from "../../redux/auth/authOperations";
 
-const bgImage = require("../../assets/images/bg.jpg");
+const bgImage = require("../../../assets/images/bg.jpg");
 
 export default function ProfileScreen({ navigation }) {
-  const [isImageAdded, setIsImageAdded] = useState(false);
+  const { user } = useSelector((state) => state.auth);
+  const { posts } = useSelector((state) => state.posts);
+  const [isImageAdded, setIsImageAdded] = useState(true);
+
+  const dispatch = useDispatch();
 
   const { width } = useWindowDimensions();
+
+  const getUserPost = () => {
+    return posts.filter((post) => post.user === user.id);
+  };
 
   return (
     <View style={styles.container}>
@@ -28,7 +38,7 @@ export default function ProfileScreen({ navigation }) {
               right: width / 2 - 60,
             }}
           >
-            <Image style={styles.avatarImg} />
+            <Image style={styles.avatarImg} source={{ uri: user.avatar }} />
             <Pressable
               style={{
                 ...styles.addAvatarBtn,
@@ -56,14 +66,50 @@ export default function ProfileScreen({ navigation }) {
               color="#BDBDBD"
               size={24}
               onPress={() => {
-                navigation.navigate("Login");
+                dispatch(authSignOutUser());
               }}
             />
           </View>
           <Text style={styles.userName}>User Name</Text>
-          <ScrollView>
-            <View style={{ height: 300 }}></View>
-          </ScrollView>
+          <FlatList
+            data={getUserPost()}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
+              <View style={{ marginBottom: 32 }}>
+                <Image source={{ uri: item.photo }} style={styles.photo} />
+                <Text style={styles.photoText}>{item.title}</Text>
+                <View style={styles.linksContainer}>
+                  <Pressable
+                    style={styles.linkContainer}
+                    onPress={() => {
+                      navigation.navigate("CommentsScreen", {
+                        photo: item.photo,
+                        postId: item.id,
+                      });
+                    }}
+                  >
+                    <Feather name="message-circle" size={24} color="#BDBDBD" />
+                    <Text style={styles.commentsCount}>
+                      {item.comments.length}
+                    </Text>
+                  </Pressable>
+                  <Pressable
+                    style={styles.linkContainer}
+                    onPress={() => {
+                      navigation.navigate("MapScreen", {
+                        location: item.location,
+                      });
+                    }}
+                  >
+                    <Feather name="map-pin" size={24} color="#BDBDBD" />
+                    <Text style={styles.locationText}>
+                      {item.location.place}
+                    </Text>
+                  </Pressable>
+                </View>
+              </View>
+            )}
+          />
         </View>
       </ImageBackground>
     </View>
@@ -138,5 +184,41 @@ const styles = StyleSheet.create({
     textAlign: "center",
     color: "#212121",
     marginBottom: 32,
+  },
+  photo: {
+    height: 240,
+    marginBottom: 8,
+    borderRadius: 8,
+  },
+  photoText: {
+    fontFamily: "Roboto_medium",
+    fontSize: 16,
+    lineHeight: 19,
+    color: "#212121",
+    marginBottom: 8,
+  },
+  linksContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  linkContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  commentsCount: {
+    fontFamily: "Roboto",
+    fontSize: 16,
+    lineHeight: 19,
+    color: "#212121",
+    marginLeft: 6,
+  },
+  locationText: {
+    fontFamily: "Roboto",
+    fontSize: 16,
+    lineHeight: 19,
+    color: "#212121",
+    textDecorationLine: "underline",
+    marginLeft: 3,
   },
 });
